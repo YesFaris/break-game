@@ -3,19 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arkanoid 1</title>
-    <script src="main.js"></script>
+    <title>Breakout Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        #canvas{
-            border: 2px solid skyblue;
+        body {
+            display: flex;
+            flex-direction: column; /* Permet d'empiler le splash screen et le canvas */
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #333;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
         }
-        body{
+        canvas {
+            background: #222;
+            display: block;
+            margin: 0 auto;
+            border: 5px solid #000;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+            /* Le canvas est initialement caché et sera affiché par JS si nécessaire */
+            /* display: none; */ /* On va gérer l'affichage via le div splashScreen */
+        }
+
+        #gameContainer {
+            position: relative; /* Conteneur pour positionner le splash screen par-dessus le canvas */
+        }
+
+        #splashScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex; /* Utilise flexbox pour centrer le contenu */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(to bottom, #4c6baf, #2e378b); /* Même dégradé que le drawSplashScreen */
+            color: #FFF;
+            font-family: 'Press Start 2P', cursive;
             text-align: center;
+            z-index: 10; /* S'assure qu'il est au-dessus du canvas */
+        }
+
+        #splashScreen h1 {
+            font-size: 4em;
+            margin-bottom: 0.5em;
+            text-shadow: 4px 4px #000; /* Ombre pour le titre */
+        }
+
+        #splashScreen p {
+            font-size: 1.5em;
+            margin-top: 0;
+        }
+
+        #playButton {
+            padding: 15px 30px;
+            font-size: 1.8em;
+            font-family: 'Press Start 2P', cursive;
+            background-color: #FF4500; /* Bouton rouge vif */
+            color: white;
+            border: 3px solid #8B0000; /* Bordure plus foncée */
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #8B0000; /* Effet 3D du bouton */
+            transition: all 0.1s ease;
+            margin-top: 30px;
+            margin-bottom: 80px;
+        }
+
+        #playButton:hover {
+            background-color: #FF6347;
+            box-shadow: 0 3px 0 #8B0000;
+            transform: translateY(2px); /* Effet de clic */
+        }
+
+        #playButton:active {
+            box-shadow: 0 0 0 #8B0000;
+            transform: translateY(5px);
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas" class="cube" width="400" height="600" id="canvas"></canvas>
-    
-</body>
+    <div id="gameContainer">
+        <canvas id="canvas" width="600" height="700"></canvas>
+        <div id="splashScreen">
+            <h1>BREAKOUT</h1>
+            <p>Le jeu </p>
+            <button id="playButton">PLAY</button>
+            <p>By Fydev</p>
+        </div>
+    </div>
+    <script src="main.js"></script></body>
 </html>

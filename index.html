@@ -18,13 +18,13 @@
         }
 
         #gameWrapper {
-            position: relative; /* Conteneur principal pour positionner les écrans */
-            width: 600px; /* Doit correspondre à la largeur du canvas */
-            height: 700px; /* Doit correspondre à la hauteur du canvas */
+            position: relative;
+            width: 700px;
+            height: 850px;
             border: 5px solid #000;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
-            background-color: #222; /* Couleur de fond par défaut pour éviter les flashs */
-            overflow: hidden; /* Important pour masquer le contenu qui dépasse */
+            background-color: #222;
+            overflow: hidden;
         }
 
         .game-screen {
@@ -33,25 +33,25 @@
             left: 0;
             width: 100%;
             height: 100%;
-            display: flex; /* Utilise flexbox pour centrer le contenu */
+            display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             color: #FFF;
             font-family: 'Press Start 2P', cursive;
             text-align: center;
-            box-sizing: border-box; /* Inclure padding et border dans la width/height */
+            box-sizing: border-box;
         }
 
         #splashScreen {
             background: linear-gradient(to bottom, #4CAF50, #2E8B57);
-            z-index: 3; /* Plus haut que les autres écrans au démarrage */
+            z-index: 3;
         }
 
         #levelSelectScreen {
-            background: linear-gradient(to bottom, #1E90FF, #4682B4); /* Bleu pour la sélection de niveau */
-            display: none; /* Caché au démarrage */
-            z-index: 2; /* Derrière l'écran de démarrage, mais devant le jeu */
+            background: linear-gradient(to bottom, #1E90FF, #4682B4);
+            display: none;
+            z-index: 2;
             padding: 20px;
         }
         #levelSelectScreen h2 {
@@ -61,16 +61,16 @@
         }
         .level-buttons {
             display: grid;
-            grid-template-columns: repeat(3, 1fr); /* 3 colonnes */
-            gap: 20px; /* Espacement entre les boutons */
-            max-width: 500px; /* Limiter la largeur du grid */
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 500px;
             margin-top: 20px;
         }
         .level-button {
             padding: 20px 10px;
             font-size: 1.5em;
             font-family: 'Press Start 2P', cursive;
-            background-color: #FFD700; /* Jaune or */
+            background-color: #FFD700;
             color: #444;
             border: 3px solid #B8860B;
             border-radius: 8px;
@@ -89,16 +89,15 @@
         }
 
         #gameScreen {
-            z-index: 1; /* Le plus bas, le jeu est toujours "là" en arrière-plan */
+            z-index: 1;
         }
 
         #canvas {
-            background: transparent; /* Le canvas n'a plus de fond propre, il est dessiné par JS */
-            /* display: block; est déjà défini par .game-screen ou son conteneur */
-            margin: 0; /* Plus besoin de margin auto, le flexbox gère le centrage */
+            background: transparent;
+            margin: 0;
         }
 
-        .button-style { /* Style générique pour les boutons PLAY et de retour */
+        .button-style {
             padding: 15px 30px;
             font-size: 1.8em;
             font-family: 'Press Start 2P', cursive;
@@ -122,6 +121,36 @@
             box-shadow: 0 0 0 #8B0000;
             transform: translateY(5px);
         }
+
+        /* Nouveau style pour le bouton retour en jeu */
+        #returnToLevelSelectButton {
+            position: absolute; /* Positionnement absolu par rapport à gameWrapper */
+            top: 20px; /* Aligné avec le score */
+            right: 20px; /* Vers la droite */
+            padding: 10px 15px;
+            font-size: 0.9em; /* Plus petit que les autres boutons */
+            font-family: 'Press Start 2P', cursive;
+            background-color: #008CBA; /* Un bleu plus neutre */
+            color: white;
+            border: 3px solid #005F7B;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #005F7B;
+            transition: all 0.1s ease;
+            z-index: 5; /* Assurez-vous qu'il est au-dessus du canvas */
+            display: none; /* Initialement caché */
+        }
+
+        #returnToLevelSelectButton:hover {
+            background-color: #00A2D2;
+            box-shadow: 0 2px 0 #005F7B;
+            transform: translateY(1px);
+        }
+        #returnToLevelSelectButton:active {
+            box-shadow: 0 0 0 #005F7B;
+            transform: translateY(3px);
+        }
+
     </style>
 </head>
 <body>
@@ -141,7 +170,9 @@
 
         <div id="gameScreen" class="game-screen">
             <canvas id="canvas" width="600" height="700"></canvas>
+            <button id="returnToLevelSelectButton">RETOUR NIVEAUX</button>
         </div>
     </div>
-    <script src="main.js"></script> </body>
+    <script src="main.js"></script>
+</body>
 </html>

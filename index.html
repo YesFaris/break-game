@@ -8,7 +8,6 @@
     <style>
         body {
             display: flex;
-            flex-direction: column; /* Permet d'empiler le splash screen et le canvas */
             justify-content: center;
             align-items: center;
             min-height: 100vh;
@@ -17,21 +16,18 @@
             font-family: Arial, sans-serif;
             overflow: hidden;
         }
-        canvas {
-            background: #222;
-            display: block;
-            margin: 0 auto;
+
+        #gameWrapper {
+            position: relative; /* Conteneur principal pour positionner les écrans */
+            width: 600px; /* Doit correspondre à la largeur du canvas */
+            height: 700px; /* Doit correspondre à la hauteur du canvas */
             border: 5px solid #000;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
-            /* Le canvas est initialement caché et sera affiché par JS si nécessaire */
-            /* display: none; */ /* On va gérer l'affichage via le div splashScreen */
+            background-color: #222; /* Couleur de fond par défaut pour éviter les flashs */
+            overflow: hidden; /* Important pour masquer le contenu qui dépasse */
         }
 
-        #gameContainer {
-            position: relative; /* Conteneur pour positionner le splash screen par-dessus le canvas */
-        }
-
-        #splashScreen {
+        .game-screen {
             position: absolute;
             top: 0;
             left: 0;
@@ -41,60 +37,111 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(to bottom, #4c6baf, #2e378b); /* Même dégradé que le drawSplashScreen */
             color: #FFF;
             font-family: 'Press Start 2P', cursive;
             text-align: center;
-            z-index: 10; /* S'assure qu'il est au-dessus du canvas */
+            box-sizing: border-box; /* Inclure padding et border dans la width/height */
         }
 
-        #splashScreen h1 {
-            font-size: 4em;
-            margin-bottom: 0.5em;
-            text-shadow: 4px 4px #000; /* Ombre pour le titre */
+        #splashScreen {
+            background: linear-gradient(to bottom, #4CAF50, #2E8B57);
+            z-index: 3; /* Plus haut que les autres écrans au démarrage */
         }
 
-        #splashScreen p {
+        #levelSelectScreen {
+            background: linear-gradient(to bottom, #1E90FF, #4682B4); /* Bleu pour la sélection de niveau */
+            display: none; /* Caché au démarrage */
+            z-index: 2; /* Derrière l'écran de démarrage, mais devant le jeu */
+            padding: 20px;
+        }
+        #levelSelectScreen h2 {
+            font-size: 2.5em;
+            margin-bottom: 40px;
+            text-shadow: 3px 3px #000;
+        }
+        .level-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 colonnes */
+            gap: 20px; /* Espacement entre les boutons */
+            max-width: 500px; /* Limiter la largeur du grid */
+            margin-top: 20px;
+        }
+        .level-button {
+            padding: 20px 10px;
             font-size: 1.5em;
-            margin-top: 0;
+            font-family: 'Press Start 2P', cursive;
+            background-color: #FFD700; /* Jaune or */
+            color: #444;
+            border: 3px solid #B8860B;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #B8860B;
+            transition: all 0.1s ease;
+        }
+        .level-button:hover {
+            background-color: #FFC000;
+            box-shadow: 0 2px 0 #B8860B;
+            transform: translateY(2px);
+        }
+        .level-button:active {
+            box-shadow: 0 0 0 #B8860B;
+            transform: translateY(4px);
         }
 
-        #playButton {
+        #gameScreen {
+            z-index: 1; /* Le plus bas, le jeu est toujours "là" en arrière-plan */
+        }
+
+        #canvas {
+            background: transparent; /* Le canvas n'a plus de fond propre, il est dessiné par JS */
+            /* display: block; est déjà défini par .game-screen ou son conteneur */
+            margin: 0; /* Plus besoin de margin auto, le flexbox gère le centrage */
+        }
+
+        .button-style { /* Style générique pour les boutons PLAY et de retour */
             padding: 15px 30px;
             font-size: 1.8em;
             font-family: 'Press Start 2P', cursive;
-            background-color: #FF4500; /* Bouton rouge vif */
+            background-color: #FF4500;
             color: white;
-            border: 3px solid #8B0000; /* Bordure plus foncée */
+            border: 3px solid #8B0000;
             border-radius: 10px;
             cursor: pointer;
-            box-shadow: 0 5px 0 #8B0000; /* Effet 3D du bouton */
+            box-shadow: 0 5px 0 #8B0000;
             transition: all 0.1s ease;
             margin-top: 30px;
-            margin-bottom: 80px;
         }
 
-        #playButton:hover {
+        .button-style:hover {
             background-color: #FF6347;
             box-shadow: 0 3px 0 #8B0000;
-            transform: translateY(2px); /* Effet de clic */
+            transform: translateY(2px);
         }
 
-        #playButton:active {
+        .button-style:active {
             box-shadow: 0 0 0 #8B0000;
             transform: translateY(5px);
         }
     </style>
 </head>
 <body>
-    <div id="gameContainer">
-        <canvas id="canvas" width="600" height="700"></canvas>
-        <div id="splashScreen">
+    <div id="gameWrapper">
+        <div id="splashScreen" class="game-screen">
             <h1>BREAKOUT</h1>
-            <p>Le jeu </p>
-            <button id="playButton">PLAY</button>
-            <p>By Fydev</p>
+            <p>Le Jeu</p>
+            <button id="startButton" class="button-style">START</button>
+        </div>
+
+        <div id="levelSelectScreen" class="game-screen">
+            <h2>CHOISIS UN NIVEAU</h2>
+            <div class="level-buttons" id="levelButtonsContainer">
+                </div>
+             <button id="backToSplashButton" class="button-style">RETOUR</button>
+        </div>
+
+        <div id="gameScreen" class="game-screen">
+            <canvas id="canvas" width="600" height="700"></canvas>
         </div>
     </div>
-    <script src="main.js"></script></body>
+    <script src="main.js"></script> </body>
 </html>

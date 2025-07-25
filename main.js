@@ -12,7 +12,6 @@ const gameLevels = [
             height: 20,
             padding: 10,
             offsetTop: 40,
-            offsetLeft: 30,
             colors: ["#FF6347", "#FF8C00", "#FFD700", "#ADFF2F", "#6A5ACD"],
             hitsToBreak: 1,
             topHighlight: "#FFFFFF",
@@ -51,7 +50,6 @@ const gameLevels = [
             height: 18,
             padding: 8,
             offsetTop: 35,
-            offsetLeft: 25,
             colors: ["#FF4500", "#FFD700", "#DAA520", "#BDB76B", "#6B8E23", "#800000"],
             hitsToBreak: 1,
             topHighlight: "#FFFFFF",
@@ -90,7 +88,6 @@ const gameLevels = [
             height: 16,
             padding: 7,
             offsetTop: 30,
-            offsetLeft: 20,
             colors: ["#DC143C", "#FF4500", "#FF8C00", "#FFD700", "#ADFF2F", "#00FF7F", "#4169E1"],
             hitsToBreak: 2, // Les briques nécessitent 2 coups !
             topHighlight: "#FFFFFF",
@@ -305,6 +302,10 @@ function initGame() {
     gamePaused = false;
 
     // Initialisation des briques avec leur état de vie (hitsLeft)
+    const totalBricksWidth = brickInfo.columnCount * brickInfo.width +
+                         (brickInfo.columnCount - 1) * brickInfo.padding;
+    brickInfo.offsetLeft = (canvasDom.width - totalBricksWidth) / 2;
+
     bricks = [];
     for (let c = 0; c < brickInfo.columnCount; c++) {
         bricks[c] = [];

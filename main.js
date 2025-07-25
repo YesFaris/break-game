@@ -1,5 +1,10 @@
 'use strict';
 
+// --- Dimensions du jeu de base (référence pour l'échelle) ---
+// Ces constantes représentent les dimensions du jeu pour lesquelles le design initial a été fait.
+const ORIGINAL_CANVAS_WIDTH = 700;
+const ORIGINAL_CANVAS_HEIGHT = 850; // J'ai ajusté la hauteur ici pour correspondre à votre gameWrapper
+
 // --- Définition des niveaux ---
 const gameLevels = [
     {
@@ -11,7 +16,7 @@ const gameLevels = [
             width: 60,
             height: 20,
             padding: 10,
-            offsetTop: 40,
+            offsetTop: 40, // Gardez offsetTop car il ne dépend pas du centrage horizontal
             colors: ["#FF6347", "#FF8C00", "#FFD700", "#ADFF2F", "#6A5ACD"],
             hitsToBreak: 1,
             topHighlight: "#FFFFFF",
@@ -89,7 +94,7 @@ const gameLevels = [
             padding: 7,
             offsetTop: 30,
             colors: ["#DC143C", "#FF4500", "#FF8C00", "#FFD700", "#ADFF2F", "#00FF7F", "#4169E1"],
-            hitsToBreak: 2, // Les briques nécessitent 2 coups !
+            hitsToBreak: 2,
             topHighlight: "#FFFFFF",
             sideShadow: "#666666",
             bottomShadow: "#3A3A3A"
@@ -134,6 +139,9 @@ let gamePaused = false;
 let gameStarted = false;
 let animationFrameId;
 
+let scaleX = 1; // Facteur de mise à l'échelle pour l'axe X
+let scaleY = 1; // Facteur de mise à l'échelle pour l'axe Y (souvent égal à scaleX pour garder le ratio)
+
 // --- Références aux éléments DOM ---
 let splashScreen;
 let levelSelectScreen;
@@ -141,7 +149,10 @@ let gameScreen;
 let startButton;
 let levelButtonsContainer;
 let backToSplashButton;
-let returnToLevelSelectButton; // Nouveau bouton
+let returnToLevelSelectButton;
+let touchControlsContainer; // Conteneur pour les contrôles tactiles
+let leftTouchArea;
+let rightTouchArea;
 
 document.addEventListener('DOMContentLoaded', function () {
     // Récupérer les éléments DOM
@@ -153,23 +164,32 @@ document.addEventListener('DOMContentLoaded', function () {
     startButton = document.getElementById("startButton");
     levelButtonsContainer = document.getElementById("levelButtonsContainer");
     backToSplashButton = document.getElementById("backToSplashButton");
-    returnToLevelSelectButton = document.getElementById("returnToLevelSelectButton"); // Récupérer le nouveau bouton
+    returnToLevelSelectButton = document.getElementById("returnToLevelSelectButton");
+
+    // Créer les contrôles tactiles
+    createTouchControls();
 
     // Attacher les écouteurs d'événements
     startButton.addEventListener('click', showLevelSelectScreen);
     backToSplashButton.addEventListener('click', showSplashScreen);
-    returnToLevelSelectButton.addEventListener('click', showLevelSelectScreen); // Écouteur pour le nouveau bouton
+    returnToLevelSelectButton.addEventListener('click', showLevelSelectScreen);
+
+    // Gérer le redimensionnement de la fenêtre
+    window.addEventListener('resize', resizeGame);
 
     // Générer les boutons de niveau
     generateLevelButtons();
 
+    // Redimensionner le jeu au chargement initial
+    resizeGame();
     // Afficher l'écran de démarrage par défaut
     showScreen(splashScreen);
 });
 
-// État des touches
+// État des touches et contrôles tactiles
 let rightPressed = false;
 let leftPressed = false;
+let touchStartX = 0; // Pour le glissement tactile
 
 function handleKeyDown(e) {
     if (gameStarted && !gamePaused && !gameOver && !gameWon) {
@@ -193,60 +213,56 @@ function handleKeyUp(e) {
 
 function handleSpacePress(e) {
     if (e.key === " ") {
-        e.preventDefault(); // Empêche le défilement de la page avec la barre d'espace
+        e.preventDefault();
 
-        // Si le jeu n'a pas encore commencé (sur un écran de menu), la barre d'espace ne fait rien
         if (!gameStarted && !(gameOver || gameWon)) {
             return;
         }
 
-        // Cas 1 : Le jeu est en état Game Over ou Game Won
         if (gameOver || gameWon) {
-            initGame(); // Réinitialise le jeu (même niveau, mais nouvelle partie)
-            startGameLoop(); // Relance la boucle de jeu
+            initGame();
+            startGameLoop();
         }
-        // Cas 2 : Le jeu est en cours (ou en pause)
         else {
-            gamePaused = !gamePaused; // Inverse l'état de pause
+            gamePaused = !gamePaused;
             if (!gamePaused) {
-                startGameLoop(); // Reprend le jeu
+                startGameLoop();
             } else {
-                cancelAnimationFrame(animationFrameId); // Met le jeu en pause
-                drawAll(); // S'assure que l'écran de pause est dessiné immédiatement
+                cancelAnimationFrame(animationFrameId);
+                drawAll();
             }
         }
     }
 }
 
-
 // --- Fonctions de gestion des écrans ---
 function showScreen(screenToShow) {
-    // Cache tous les écrans
     splashScreen.style.display = "none";
     levelSelectScreen.style.display = "none";
     gameScreen.style.display = "none";
-    returnToLevelSelectButton.style.display = "none"; // Cache toujours le bouton retour au début
+    returnToLevelSelectButton.style.display = "none";
+    if (touchControlsContainer) touchControlsContainer.style.display = "none"; // Cacher les contrôles tactiles par défaut
 
-    // Affiche l'écran désiré
     screenToShow.style.display = "flex";
 
-    // Gère l'état 'gameStarted' et les écouteurs de clavier
     if (screenToShow === gameScreen) {
         gameStarted = true;
         document.addEventListener("keydown", handleKeyDown);
         document.addEventListener("keyup", handleKeyUp);
         document.addEventListener("keydown", handleSpacePress);
-        // Afficher le bouton de retour seulement quand on est sur l'écran de jeu actif
-        if (!gameOver && !gameWon && !gamePaused) { // Pas affiché si game over, won, ou pause
+        if (!gameOver && !gameWon && !gamePaused) {
             returnToLevelSelectButton.style.display = "block";
         }
+        if (touchControlsContainer) touchControlsContainer.style.display = "flex"; // Afficher les contrôles tactiles en jeu
     } else {
         gameStarted = false;
-        cancelAnimationFrame(animationFrameId); // Arrêter l'animation du jeu si elle tournait
-        // Détacher les écouteurs de jeu pour éviter les interactions inattendues
+        cancelAnimationFrame(animationFrameId);
         document.removeEventListener("keydown", handleKeyDown);
         document.removeEventListener("keyup", handleKeyUp);
         document.removeEventListener("keydown", handleSpacePress);
+        // Réinitialiser les états des touches / touch
+        rightPressed = false;
+        leftPressed = false;
     }
 }
 
@@ -265,18 +281,18 @@ function startGame(levelId) {
         return;
     }
 
-    // Appliquer les propriétés du niveau sélectionné
+    // Copiez les propriétés du niveau, elles seront ensuite mises à l'échelle dans initGame
     Object.assign(ball, currentLevel.ball);
     Object.assign(paddle, currentLevel.paddle);
     Object.assign(brickInfo, currentLevel.brick);
 
-    showScreen(gameScreen); // Cela va aussi définir gameStarted à true et attacher les écouteurs
-    initGame(); // Initialise le jeu avec les propriétés du niveau
+    showScreen(gameScreen);
+    initGame();
     startGameLoop();
 }
 
 function generateLevelButtons() {
-    levelButtonsContainer.innerHTML = ''; // Nettoie les anciens boutons
+    levelButtonsContainer.innerHTML = '';
     gameLevels.forEach(level => {
         const button = document.createElement('button');
         button.classList.add('level-button');
@@ -287,36 +303,75 @@ function generateLevelButtons() {
 }
 
 function initGame() {
-    ball.x = canvasDom.width / 2;
-    ball.y = canvasDom.height - 30;
-    
-    // Réinitialise la direction de la balle pour un nouveau départ à chaque partie
-    ball.dx = (Math.random() > 0.5 ? 1 : -1) * currentLevel.ball.dx; // Direction X aléatoire
-    ball.dy = -Math.abs(currentLevel.ball.dy); // Toujours vers le haut au début
+    // Calcul de l'échelle à partir des dimensions actuelles du canvas
+    scaleX = canvasDom.width / ORIGINAL_CANVAS_WIDTH;
+    scaleY = canvasDom.height / ORIGINAL_CANVAS_HEIGHT;
 
-    paddle.x = (canvasDom.width - paddle.width) / 2;
-    paddle.y = canvasDom.height - paddle.height - 20;
+    // IMPORTANT : Mettre à l'échelle toutes les propriétés du jeu ici
+    // Utiliser ORIGINAL_CANVAS_WIDTH / ORIGINAL_CANVAS_HEIGHT pour le positionnement initial
+    // et les propriétés `dx`, `dy`, `radius`, `width`, `height`, `speed`, `offsetTop`, etc.
+
+    ball.x = (ORIGINAL_CANVAS_WIDTH / 2) * scaleX;
+    ball.y = (ORIGINAL_CANVAS_HEIGHT - 30) * scaleY;
+    
+    // Les vitesses dx et dy doivent aussi être mises à l'échelle
+    ball.dx = (Math.random() > 0.5 ? 1 : -1) * currentLevel.ball.dx * scaleX;
+    ball.dy = -Math.abs(currentLevel.ball.dy) * scaleY;
+    ball.radius = currentLevel.ball.radius * scaleX; // Le rayon de la balle est aussi mis à l'échelle
+
+    paddle.width = currentLevel.paddle.width * scaleX;
+    paddle.height = currentLevel.paddle.height * scaleY;
+    paddle.speed = currentLevel.paddle.speed * scaleX; // La vitesse de la raquette est aussi mise à l'échelle
+    paddle.x = (ORIGINAL_CANVAS_WIDTH / 2 - paddle.width / 2) * scaleX; // Position x initiale centrée
+    paddle.y = (ORIGINAL_CANVAS_HEIGHT - paddle.height - 20) * scaleY;
+    paddle.borderRadius = currentLevel.paddle.borderRadius * scaleX;
+
+    brickInfo.width = currentLevel.brick.width * scaleX;
+    brickInfo.height = currentLevel.brick.height * scaleY;
+    brickInfo.padding = currentLevel.brick.padding * scaleX;
+    brickInfo.offsetTop = currentLevel.brick.offsetTop * scaleY; // Top offset est aussi mis à l'échelle
 
     gameOver = false;
     gameWon = false;
     gamePaused = false;
 
-    // Initialisation des briques avec leur état de vie (hitsLeft)
-    const totalBricksWidth = brickInfo.columnCount * brickInfo.width +
-                         (brickInfo.columnCount - 1) * brickInfo.padding;
-    brickInfo.offsetLeft = (canvasDom.width - totalBricksWidth) / 2;
+    // Calcul pour centrer les briques, maintenant basé sur les dimensions d'origine avant mise à l'échelle
+    const originalTotalBricksWidth = currentLevel.brick.columnCount * currentLevel.brick.width +
+                                     (currentLevel.brick.columnCount - 1) * currentLevel.brick.padding;
+    brickInfo.offsetLeft = ((ORIGINAL_CANVAS_WIDTH - originalTotalBricksWidth) / 2) * scaleX;
 
     bricks = [];
-    for (let c = 0; c < brickInfo.columnCount; c++) {
+    for (let c = 0; c < brickInfo.columnCount; c++) { // columnCount et rowCount ne sont pas mis à l'échelle
         bricks[c] = [];
         for (let r = 0; r < brickInfo.rowCount; r++) {
             bricks[c][r] = { x: 0, y: 0, status: 1, hitsLeft: brickInfo.hitsToBreak };
         }
     }
-    // S'assurer que le bouton retour est visible au début d'une partie
-    if (gameStarted) { // Vérifie qu'on est bien en jeu
+    if (gameStarted) {
         returnToLevelSelectButton.style.display = "block";
     }
+    // Assurez-vous que le contexte de dessin est mis à jour pour les nouvelles dimensions du canvas
+    ctx.font = `${20 * scaleX}px 'Press Start 2P', cursive`; // Mettre à l'échelle la taille de police pour le score
+}
+
+// Fonction pour redimensionner le canvas et recalculer les échelles
+function resizeGame() {
+    const gameWrapper = document.getElementById('gameWrapper');
+    
+    // Définir les dimensions réelles du canvas en fonction de son conteneur
+    canvasDom.width = gameWrapper.clientWidth;
+    canvasDom.height = gameWrapper.clientHeight;
+
+    // Recalculer les facteurs de mise à l'échelle
+    scaleX = canvasDom.width / ORIGINAL_CANVAS_WIDTH;
+    scaleY = canvasDom.height / ORIGINAL_CANVAS_HEIGHT;
+
+    // Si un niveau est en cours ou a été sélectionné, réinitialiser le jeu avec la nouvelle échelle
+    if (currentLevel) {
+        initGame(); // initGame va recalculer toutes les positions et tailles avec la nouvelle échelle
+    }
+    // Redessiner tout pour que les changements soient visibles immédiatement
+    drawAll();
 }
 
 // --- Fonctions de dessin ---
@@ -332,7 +387,7 @@ function drawBall() {
 
     ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
     ctx.fillStyle = gradient;
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = 10 * scaleX; // Mettre à l'échelle le flou d'ombre
     ctx.shadowColor = ball.color;
     ctx.fill();
     ctx.closePath();
@@ -364,7 +419,7 @@ function drawPaddle() {
     paddleGradient.addColorStop(1, paddle.shadowColor);
 
     ctx.fillStyle = paddleGradient;
-    ctx.shadowBlur = 15;
+    ctx.shadowBlur = 15 * scaleX; // Mettre à l'échelle le flou d'ombre
     ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
     ctx.fill();
     ctx.shadowBlur = 0;
@@ -375,21 +430,20 @@ function drawBricks() {
         for (let r = 0; r < brickInfo.rowCount; r++) {
             let b = bricks[c][r];
             if (b.status === 1) {
+                // Utilisez brickInfo.offsetLeft qui est mis à l'échelle dans initGame
+                // Les propriétés width, height, padding, offsetTop sont déjà mises à l'échelle dans initGame
                 let brickX = (c * (brickInfo.width + brickInfo.padding)) + brickInfo.offsetLeft;
                 let brickY = (r * (brickInfo.height + brickInfo.padding)) + brickInfo.offsetTop;
                 b.x = brickX;
                 b.y = brickY;
 
                 let currentBrickColor = brickInfo.colors[r % brickInfo.colors.length];
-                // Assombrir la brique si elle a été touchée mais n'est pas détruite
                 if (b.hitsLeft < brickInfo.hitsToBreak) {
                     const originalColor = currentBrickColor;
                     const colorValue = parseInt(originalColor.substring(1), 16);
-                    // Diminuer la luminosité pour donner un aspect "endommagé"
-                    const darkerColorValue = Math.max(0, colorValue - 0x202020); // Diminue de 0x20 pour chaque composante RGB
+                    const darkerColorValue = Math.max(0, colorValue - 0x202020);
                     currentBrickColor = '#' + darkerColorValue.toString(16).padStart(6, '0');
                 }
-
 
                 ctx.beginPath();
                 ctx.rect(brickX, brickY, brickInfo.width, brickInfo.height);
@@ -398,16 +452,16 @@ function drawBricks() {
                 ctx.closePath();
 
                 ctx.fillStyle = brickInfo.topHighlight;
-                ctx.fillRect(brickX, brickY, brickInfo.width, 2);
+                ctx.fillRect(brickX, brickY, brickInfo.width, 2 * scaleY); // Épaisseur de la surbrillance mise à l'échelle
 
                 ctx.fillStyle = brickInfo.sideShadow;
-                ctx.fillRect(brickX + brickInfo.width - 2, brickY, 2, brickInfo.height);
+                ctx.fillRect(brickX + brickInfo.width - (2 * scaleX), brickY, 2 * scaleX, brickInfo.height); // Épaisseur de l'ombre latérale mise à l'échelle
 
                 ctx.fillStyle = brickInfo.bottomShadow;
-                ctx.fillRect(brickX, brickY + brickInfo.height - 2, brickInfo.width, 2);
+                ctx.fillRect(brickX, brickY + brickInfo.height - (2 * scaleY), brickInfo.width, 2 * scaleY); // Épaisseur de l'ombre du bas mise à l'échelle
                 
                 ctx.strokeStyle = "rgba(0,0,0,0.5)";
-                ctx.lineWidth = 1;
+                ctx.lineWidth = 1 * scaleX; // Largeur de ligne mise à l'échelle
                 ctx.strokeRect(brickX, brickY, brickInfo.width, brickInfo.height);
             }
         }
@@ -423,18 +477,19 @@ function drawScore() {
             }
         }
     }
-    ctx.font = "20px 'Press Start 2P', cursive";
+    // Mettre à l'échelle la taille de la police pour le score
+    ctx.font = `${Math.floor(20 * scaleX)}px 'Press Start 2P', cursive`; 
     ctx.fillStyle = "#FFF";
     ctx.textAlign = "left";
-    ctx.fillText("Score: " + score, 20, 30);
-    ctx.fillText("Niveau: " + currentLevel.id, canvasDom.width - 150, 30);
+    ctx.fillText("Score: " + score, 20 * scaleX, 30 * scaleY); // Positions mises à l'échelle
+    ctx.fillText("Niveau: " + (currentLevel ? currentLevel.id : 'N/A'), (ORIGINAL_CANVAS_WIDTH - 150) * scaleX, 30 * scaleY);
+    ctx.textAlign = "start"; // Réinitialiser le textAlign
     return score;
 }
 
 function drawAll() {
     ctx.clearRect(0, 0, canvasDom.width, canvasDom.height);
 
-    // Le fond du canvas dépend du niveau sélectionné et si le jeu est actif ou terminé
     if (currentLevel && (gameStarted || gameOver || gameWon)) {
         let gradient = ctx.createLinearGradient(0, 0, 0, canvasDom.height);
         gradient.addColorStop(0, currentLevel.background.gradientStart);
@@ -442,12 +497,10 @@ function drawAll() {
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvasDom.width, canvasDom.height);
     } else {
-        // Fond neutre pour les menus si aucun niveau n'est chargé ou jeu non démarré
         ctx.fillStyle = "#222";
         ctx.fillRect(0, 0, canvasDom.width, canvasDom.height);
     }
 
-    // Dessine les éléments du jeu si le jeu est en cours OU s'il vient de se terminer (pour afficher la dernière image)
     if (gameStarted || gameOver || gameWon) {
         drawBricks();
         drawBall();
@@ -455,59 +508,66 @@ function drawAll() {
         drawScore();
     }
     
-    // Affichage des écrans d'état (pause, game over, game won)
-    // Ces écrans sont dessinés par-dessus les éléments du jeu si leurs conditions sont remplies
+    // La visibilité du bouton de retour est gérée ici.
     if (gamePaused) {
         drawPauseScreen();
-        returnToLevelSelectButton.style.display = "none"; // Cache le bouton retour pendant la pause
+        returnToLevelSelectButton.style.display = "none";
+        if (touchControlsContainer) touchControlsContainer.style.display = "none";
     } else if (gameOver) {
         drawGameOverScreen();
-        returnToLevelSelectButton.style.display = "none"; // Cache le bouton retour à game over
+        returnToLevelSelectButton.style.display = "none";
+        if (touchControlsContainer) touchControlsContainer.style.display = "none";
     } else if (gameWon) {
         drawGameWonScreen();
-        returnToLevelSelectButton.style.display = "none"; // Cache le bouton retour à game won
-    } else if (gameStarted) { // Si le jeu est actif, on affiche le bouton retour
+        returnToLevelSelectButton.style.display = "none";
+        if (touchControlsContainer) touchControlsContainer.style.display = "none";
+    } else if (gameStarted) {
         returnToLevelSelectButton.style.display = "block";
+        if (touchControlsContainer) touchControlsContainer.style.display = "flex"; // S'assurer qu'ils sont visibles en jeu
     }
 }
 
 function drawGameOverScreen() {
-    ctx.font = "bold 3rem 'Press Start 2P', cursive";
+    ctx.font = `bold ${Math.floor(3 * 16 * scaleX)}px 'Press Start 2P', cursive`; // 3rem -> 3 * 16px par défaut
     ctx.fillStyle = "#FF4500";
     ctx.textAlign = "center";
-    ctx.fillText("GAME OVER", canvasDom.width / 2, canvasDom.height / 2 - 20);
-    ctx.font = "1.2rem 'Press Start 2P', cursive";
+    ctx.fillText("GAME OVER", canvasDom.width / 2, (ORIGINAL_CANVAS_HEIGHT / 2 - 20) * scaleY);
+    ctx.font = `${Math.floor(1.2 * 16 * scaleX)}px 'Press Start 2P', cursive`; // 1.2rem
     ctx.fillStyle = "#FFF";
-    ctx.fillText("Appuyez sur ESPACE pour rejouer", canvasDom.width / 2, canvasDom.height / 2 + 20);
-    ctx.textAlign = "start"; // Réinitialiser pour éviter d'affecter d'autres dessins
+    ctx.fillText("Appuyez sur ESPACE pour rejouer", canvasDom.width / 2, (ORIGINAL_CANVAS_HEIGHT / 2 + 20) * scaleY);
+    ctx.textAlign = "start";
 }
 
 function drawGameWonScreen() {
-    ctx.font = "bold 3rem 'Press Start 2P', cursive";
+    ctx.font = `bold ${Math.floor(3 * 16 * scaleX)}px 'Press Start 2P', cursive`;
     ctx.fillStyle = "#32CD32";
     ctx.textAlign = "center";
-    ctx.fillText("VOUS AVEZ GAGNÉ !", canvasDom.width / 2, canvasDom.height / 2 - 20);
-    ctx.font = "1.2rem 'Press Start 2P', cursive";
+    ctx.fillText("VOUS AVEZ GAGNÉ !", canvasDom.width / 2, (ORIGINAL_CANVAS_HEIGHT / 2 - 20) * scaleY);
+    ctx.font = `${Math.floor(1.2 * 16 * scaleX)}px 'Press Start 2P', cursive`;
     ctx.fillStyle = "#FFF";
-    ctx.fillText("Appuyez sur ESPACE pour rejouer", canvasDom.width / 2, canvasDom.height / 2 + 20);
-    ctx.textAlign = "start"; // Réinitialiser
+    ctx.fillText("Appuyez sur ESPACE pour rejouer", canvasDom.width / 2, (ORIGINAL_CANVAS_HEIGHT / 2 + 20) * scaleY);
+    ctx.textAlign = "start";
 }
 
 function drawPauseScreen() {
-    ctx.font = "bold 3rem 'Press Start 2P', cursive";
+    ctx.font = `bold ${Math.floor(3 * 16 * scaleX)}px 'Press Start 2P', cursive`;
     ctx.fillStyle = "#FFFF00";
     ctx.textAlign = "center";
-    ctx.fillText("PAUSE", canvasDom.width / 2, canvasDom.height / 2 - 20);
-    ctx.font = "1.2rem 'Press Start 2P', cursive";
+    ctx.fillText("PAUSE", canvasDom.width / 2, (ORIGINAL_CANVAS_HEIGHT / 2 - 20) * scaleY);
+    ctx.font = `${Math.floor(1.2 * 16 * scaleX)}px 'Press Start 2P', cursive`;
     ctx.fillStyle = "#FFF";
-    ctx.fillText("Appuyez sur ESPACE pour continuer", canvasDom.width / 2, canvasDom.height / 2 + 20);
-    ctx.textAlign = "start"; // Réinitialiser
+    ctx.fillText("Appuyez sur ESPACE pour continuer", canvasDom.width / 2, (ORIGINAL_CANVAS_HEIGHT / 2 + 20) * scaleY);
+    ctx.textAlign = "start";
 }
 
 function detectCollisions() {
     if (!gameStarted || gamePaused || gameOver || gameWon) return;
 
-    if (ball.x + ball.dx > canvasDom.width - ball.radius || ball.x + ball.dx < ball.radius) {
+    // Mise à l'échelle des limites de collision avec le canvas
+    const canvasWidthScaled = canvasDom.width;
+    const canvasHeightScaled = canvasDom.height;
+
+    if (ball.x + ball.dx > canvasWidthScaled - ball.radius || ball.x + ball.dx < ball.radius) {
         ball.dx = -ball.dx;
     }
     if (ball.y + ball.dy < ball.radius) {
@@ -519,13 +579,15 @@ function detectCollisions() {
             ball.dy = -ball.dy;
 
             let hitPoint = ball.x - (paddle.x + paddle.width / 2);
-            ball.dx = hitPoint * 0.2;
-            ball.dx = Math.max(-6, Math.min(6, ball.dx));
+            // La logique de rebond doit aussi être mise à l'échelle
+            ball.dx = hitPoint * 0.2 * scaleX; // Ajuster le facteur 0.2 avec scaleX
+            ball.dx = Math.max(-6 * scaleX, Math.min(6 * scaleX, ball.dx)); // Les limites aussi sont mises à l'échelle
         } else {
             gameOver = true;
             cancelAnimationFrame(animationFrameId);
-            drawAll(); // Appelle drawAll pour afficher l'écran Game Over immédiatement
-            returnToLevelSelectButton.style.display = "none"; // S'assurer qu'il est caché
+            drawAll();
+            returnToLevelSelectButton.style.display = "none";
+            if (touchControlsContainer) touchControlsContainer.style.display = "none";
         }
     }
 
@@ -569,8 +631,9 @@ function detectCollisions() {
                     if (remainingBricks === 0) {
                         gameWon = true;
                         cancelAnimationFrame(animationFrameId);
-                        drawAll(); // Appelle drawAll pour afficher l'écran Game Won immédiatement
-                        returnToLevelSelectButton.style.display = "none"; // S'assurer qu'il est caché
+                        drawAll();
+                        returnToLevelSelectButton.style.display = "none";
+                        if (touchControlsContainer) touchControlsContainer.style.display = "none";
                     }
                 }
             }
@@ -584,6 +647,7 @@ function updateGameLogic() {
     ball.x += ball.dx;
     ball.y += ball.dy;
 
+    // Mise à l'échelle de la vitesse de la raquette
     if (rightPressed && paddle.x < canvasDom.width - paddle.width) {
         paddle.x += paddle.speed;
     } else if (leftPressed && paddle.x > 0) {
@@ -603,9 +667,79 @@ function gameLoop() {
 }
 
 function startGameLoop() {
-    // Cette fonction est appelée pour démarrer la boucle d'animation.
-    // Elle ne doit démarrer que si le jeu n'est pas déjà en cours de fin/pause.
     if (!gameOver && !gameWon && !gamePaused && gameStarted) {
         animationFrameId = requestAnimationFrame(gameLoop);
     }
+}
+
+// --- Fonctions pour les contrôles tactiles ---
+function createTouchControls() {
+    touchControlsContainer = document.createElement('div');
+    touchControlsContainer.classList.add('touch-controls');
+    document.getElementById('gameScreen').appendChild(touchControlsContainer);
+
+    leftTouchArea = document.createElement('div');
+    leftTouchArea.classList.add('touch-area', 'left');
+    touchControlsContainer.appendChild(leftTouchArea);
+
+    rightTouchArea = document.createElement('div');
+    rightTouchArea.classList.add('touch-area', 'right');
+    touchControlsContainer.appendChild(rightTouchArea);
+
+    // Écouteurs d'événements tactiles pour déplacer la raquette
+    leftTouchArea.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // Empêche le défilement et le zoom
+        leftPressed = true;
+    });
+    leftTouchArea.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        leftPressed = false;
+    });
+    leftTouchArea.addEventListener('touchcancel', (e) => { // Gérer l'annulation du toucher
+        e.preventDefault();
+        leftPressed = false;
+    });
+
+    rightTouchArea.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        rightPressed = true;
+    });
+    rightTouchArea.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        rightPressed = false;
+    });
+    rightTouchArea.addEventListener('touchcancel', (e) => {
+        e.preventDefault();
+        rightPressed = false;
+    });
+
+    // Optionnel: Gérer la pause avec un appui sur le canvas (peut être sensible)
+    canvasDom.addEventListener('click', (e) => {
+        // Seulement si le jeu est actif et non en game over/won
+        if (gameStarted && !gameOver && !gameWon && !gamePaused) {
+            // Empêche la pause si le clic est sur le bouton "Retour Niveaux"
+            const rect = returnToLevelSelectButton.getBoundingClientRect();
+            if (e.clientX >= rect.left && e.clientX <= rect.right &&
+                e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                return; // Clic sur le bouton de retour, ne pas mettre en pause
+            }
+            // Mettre en pause si l'on tape ailleurs sur le canvas
+            gamePaused = true;
+            cancelAnimationFrame(animationFrameId);
+            drawAll();
+        } else if (gameOver || gameWon) {
+             // Si game over/won, un tap n'importe où redémarre le jeu (alternative à Espace)
+            initGame();
+            startGameLoop();
+        }
+    });
+
+    // Ajout d'une gestion de la pause/reprise via un tap sur le canvas
+    // Si gamePaused, un tap sur le canvas reprend le jeu
+    canvasDom.addEventListener('click', (e) => {
+        if (gamePaused) {
+            gamePaused = false;
+            startGameLoop();
+        }
+    });
 }

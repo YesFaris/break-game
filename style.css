@@ -1,0 +1,238 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #333;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+}
+
+#gameWrapper {
+    position: relative;
+    /* Dimensions flexibles pour le responsive */
+    width: 90vw; /* 90% de la largeur du viewport */
+    max-width: 700px; /* Mais pas plus que la taille originale max */
+    height: calc(90vw * (850 / 700)); /* Garde le ratio 850:700 */
+    max-height: 850px; /* Pas plus que la taille originale max */
+    border: 5px solid #000;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+    background-color: #222;
+    overflow: hidden;
+    /* Ajustement pour les écrans très larges pour éviter un étirement excessif */
+    aspect-ratio: 700 / 850; /* Maintient le ratio width/height */
+}
+
+.game-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #FFF;
+    font-family: 'Press Start 2P', cursive;
+    text-align: center;
+    box-sizing: border-box;
+    padding: 2vmin; /* Utilisez des unités relatives pour le padding */
+}
+
+#splashScreen {
+    background: linear-gradient(to bottom, #4f65c5, #0e178f);
+    z-index: 3;
+}
+#splashScreen h1 {
+    font-size: 8vmin; /* Taille de police responsive */
+    margin-bottom: 2vmin;
+}
+#splashScreen p {
+    font-size: 3vmin;
+    margin-bottom: 5vmin;
+}
+
+
+#levelSelectScreen {
+    background: linear-gradient(to bottom, #1E90FF, #4682B4);
+    display: none;
+    z-index: 2;
+    padding: 20px; /* Le padding sera géré par .game-screen padding */
+}
+#levelSelectScreen h2 {
+    font-size: 5vmin; /* Taille de police responsive */
+    margin-bottom: 4vmin;
+    text-shadow: 3px 3px #000;
+}
+.level-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2vmin; /* Espacement responsive */
+    max-width: 80%; /* Largeur max responsive */
+    margin-top: 4vmin;
+}
+.level-button {
+    padding: 3vmin 1vmin; /* Padding responsive */
+    font-size: 3vmin; /* Taille de police responsive */
+    font-family: 'Press Start 2P', cursive;
+    background-color: #FFD700;
+    color: #444;
+    border: 3px solid #B8860B;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #B8860B;
+    transition: all 0.1s ease;
+}
+.level-button:hover {
+    background-color: #FFC000;
+    box-shadow: 0 2px 0 #B8860B;
+    transform: translateY(2px);
+}
+.level-button:active {
+    box-shadow: 0 0 0 #B8860B;
+    transform: translateY(4px);
+}
+
+#gameScreen {
+    z-index: 1;
+}
+
+#canvas {
+    background: transparent;
+    display: block; /* S'assure qu'il n'y a pas de marges indésirables */
+    width: 100%; /* Le canvas prendra toute la largeur disponible de gameWrapper */
+    height: 100%; /* Le canvas prendra toute la hauteur disponible de gameWrapper */
+}
+
+.button-style {
+    padding: 2vmin 4vmin; /* Padding responsive */
+    font-size: 3vmin; /* Taille de police responsive */
+    font-family: 'Press Start 2P', cursive;
+    background-color: #FF4500;
+    color: white;
+    border: 3px solid #8B0000;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #8B0000;
+    transition: all 0.1s ease;
+    margin-top: 5vmin; /* Marge responsive */
+}
+
+.button-style:hover {
+    background-color: #FF6347;
+    box-shadow: 0 3px 0 #8B0000;
+    transform: translateY(2px);
+}
+
+.button-style:active {
+    box-shadow: 0 0 0 #8B0000;
+    transform: translateY(5px);
+}
+
+/* Style pour le bouton retour en jeu */
+#returnToLevelSelectButton {
+    position: absolute;
+    top: 2vmin; /* Utilisez vmin pour une position responsive */
+    right: 2vmin;
+    padding: 1.5vmin 2.5vmin; /* Padding responsive */
+    font-size: 2vmin; /* Taille de police responsive */
+    font-family: 'Press Start 2P', cursive;
+    background-color: #008CBA;
+    color: white;
+    border: 3px solid #005F7B;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #005F7B;
+    transition: all 0.1s ease;
+    z-index: 5;
+    display: none;
+}
+
+#returnToLevelSelectButton:hover {
+    background-color: #00A2D2;
+    box-shadow: 0 2px 0 #005F7B;
+    transform: translateY(1px);
+}
+#returnToLevelSelectButton:active {
+    box-shadow: 0 0 0 #005F7B;
+    transform: translateY(3px);
+}
+
+/* Media Queries pour les petits écrans (smartphones en mode portrait) */
+@media (max-width: 600px) {
+    #gameWrapper {
+        width: 98vw; /* Prend plus de largeur sur les petits écrans */
+        height: calc(98vw * (850 / 700));
+        max-height: 95vh; /* Limite la hauteur pour ne pas dépasser l'écran */
+    }
+
+    .game-screen h1 {
+        font-size: 6vmin;
+    }
+
+    .game-screen p {
+        font-size: 2.5vmin;
+    }
+
+    #levelSelectScreen h2 {
+        font-size: 4vmin;
+    }
+
+    .level-buttons {
+        grid-template-columns: repeat(2, 1fr); /* 2 colonnes sur mobile */
+        max-width: 90%;
+    }
+
+    .level-button {
+        font-size: 2.5vmin;
+        padding: 2vmin 1vmin;
+    }
+
+    .button-style {
+        padding: 2vmin 3vmin;
+        font-size: 2.5vmin;
+        margin-top: 4vmin;
+    }
+
+    #returnToLevelSelectButton {
+        font-size: 1.8vmin;
+        padding: 1vmin 2vmin;
+    }
+}
+
+/* Ajout d'un style pour les contrôles tactiles qui seront générés par JS */
+.touch-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 15%; /* Hauteur des zones tactiles */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10; /* Au-dessus de tout le reste */
+    pointer-events: none; /* Par défaut, les pointer-events sont désactivés pour ne pas bloquer le canvas */
+}
+
+.touch-area {
+    width: 50%;
+    height: 100%;
+    /* background-color: rgba(255, 255, 255, 0.1); /* Pour le debug, peut être retiré */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 4vmin;
+    pointer-events: auto; /* Active les pointer-events pour les zones cliquables */
+    user-select: none; /* Empêche la sélection de texte */
+    -webkit-tap-highlight-color: transparent; /* Supprime l'effet de surbrillance au toucher */
+}
+
+.touch-area.left::before {
+    content: "◀";
+}
+.touch-area.right::before {
+    content: "▶";
+}

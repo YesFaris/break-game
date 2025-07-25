@@ -134,7 +134,7 @@ let ctx;
 let gameOver = false;
 let gameWon = false;
 let gamePaused = false;
-let gameStarted = false; // False signifie que nous sommes sur l'écran de démarrage ou de sélection
+let gameStarted = false;
 let animationFrameId;
 
 // --- Références aux éléments DOM ---

@@ -4,154 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Breakout Game</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            background-color: #333;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-        }
-
-        #gameWrapper {
-            position: relative;
-            width: 700px;
-            height: 850px;
-            border: 5px solid #000;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
-            background-color: #222;
-            overflow: hidden;
-        }
-
-        .game-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: #FFF;
-            font-family: 'Press Start 2P', cursive;
-            text-align: center;
-            box-sizing: border-box;
-        }
-
-        #splashScreen {
-            background: linear-gradient(to bottom, #4CAF50, #2E8B57);
-            z-index: 3;
-        }
-
-        #levelSelectScreen {
-            background: linear-gradient(to bottom, #1E90FF, #4682B4);
-            display: none;
-            z-index: 2;
-            padding: 20px;
-        }
-        #levelSelectScreen h2 {
-            font-size: 2.5em;
-            margin-bottom: 40px;
-            text-shadow: 3px 3px #000;
-        }
-        .level-buttons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            max-width: 500px;
-            margin-top: 20px;
-        }
-        .level-button {
-            padding: 20px 10px;
-            font-size: 1.5em;
-            font-family: 'Press Start 2P', cursive;
-            background-color: #FFD700;
-            color: #444;
-            border: 3px solid #B8860B;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #B8860B;
-            transition: all 0.1s ease;
-        }
-        .level-button:hover {
-            background-color: #FFC000;
-            box-shadow: 0 2px 0 #B8860B;
-            transform: translateY(2px);
-        }
-        .level-button:active {
-            box-shadow: 0 0 0 #B8860B;
-            transform: translateY(4px);
-        }
-
-        #gameScreen {
-            z-index: 1;
-        }
-
-        #canvas {
-            background: transparent;
-            margin: 0;
-        }
-
-        .button-style {
-            padding: 15px 30px;
-            font-size: 1.8em;
-            font-family: 'Press Start 2P', cursive;
-            background-color: #FF4500;
-            color: white;
-            border: 3px solid #8B0000;
-            border-radius: 10px;
-            cursor: pointer;
-            box-shadow: 0 5px 0 #8B0000;
-            transition: all 0.1s ease;
-            margin-top: 30px;
-        }
-
-        .button-style:hover {
-            background-color: #FF6347;
-            box-shadow: 0 3px 0 #8B0000;
-            transform: translateY(2px);
-        }
-
-        .button-style:active {
-            box-shadow: 0 0 0 #8B0000;
-            transform: translateY(5px);
-        }
-
-        /* Nouveau style pour le bouton retour en jeu */
-        #returnToLevelSelectButton {
-            position: absolute; /* Positionnement absolu par rapport à gameWrapper */
-            top: 20px; /* Aligné avec le score */
-            right: 20px; /* Vers la droite */
-            padding: 10px 15px;
-            font-size: 0.9em; /* Plus petit que les autres boutons */
-            font-family: 'Press Start 2P', cursive;
-            background-color: #008CBA; /* Un bleu plus neutre */
-            color: white;
-            border: 3px solid #005F7B;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: 0 3px 0 #005F7B;
-            transition: all 0.1s ease;
-            z-index: 5; /* Assurez-vous qu'il est au-dessus du canvas */
-            display: none; /* Initialement caché */
-        }
-
-        #returnToLevelSelectButton:hover {
-            background-color: #00A2D2;
-            box-shadow: 0 2px 0 #005F7B;
-            transform: translateY(1px);
-        }
-        #returnToLevelSelectButton:active {
-            box-shadow: 0 0 0 #005F7B;
-            transform: translateY(3px);
-        }
-
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"> 
 </head>
 <body>
     <div id="gameWrapper">
@@ -159,7 +13,7 @@
             <h1>BREAKOUT</h1>
             <p>Le Jeu</p>
             <button id="startButton" class="button-style">START</button>
-            <p>By Fydev</p>
+            <p>By Faris_yesf</p>
         </div>
 
         <div id="levelSelectScreen" class="game-screen">
@@ -170,10 +24,9 @@
         </div>
 
         <div id="gameScreen" class="game-screen">
-            <canvas id="canvas" width="680" height="700"></canvas>
+            <canvas id="canvas"></canvas> 
             <button id="returnToLevelSelectButton">RETOUR NIVEAUX</button>
         </div>
     </div>
-    <script src="main.js"></script>
-</body>
+    <script src="main.js"></script> </body>
 </html>

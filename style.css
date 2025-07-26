@@ -6,15 +6,15 @@ body {
     margin: 0;
     background-color: #333;
     font-family: Arial, sans-serif;
-    overflow: hidden;
+    overflow: hidden; /* Empêche le défilement */
 }
 
 #gameWrapper {
     position: relative;
     /* Dimensions flexibles pour le responsive */
-    width: 90vw; /* 90% de la largeur du viewport */
+    width: 90vw; /* 90% de la largeur du viewport sur desktop */
     max-width: 700px; /* Mais pas plus que la taille originale max */
-    height: calc(90vw * (850 / 700)); /* Garde le ratio 850:700 */
+    height: calc(90vw * (850 / 700)); /* Garde le ratio 850:700 sur desktop */
     max-height: 850px; /* Pas plus que la taille originale max */
     border: 5px solid #000;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
@@ -31,7 +31,7 @@ body {
     width: 100%;
     height: 100%;
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Utilise flexbox pour empiler les éléments */
     justify-content: center;
     align-items: center;
     color: #FFF;
@@ -40,6 +40,39 @@ body {
     box-sizing: border-box;
     padding: 2vmin; /* Utilisez des unités relatives pour le padding */
 }
+
+/* Nouvelle page de saisie du nom */
+#nameEntryScreen {
+    background: linear-gradient(to bottom, #4f478a, #2a2254);
+    z-index: 4; /* Au-dessus de toutes les autres */
+}
+#nameEntryScreen h1 {
+    font-size: 8vmin;
+    margin-bottom: 2vmin;
+    color: #FFD700;
+    text-shadow: 4px 4px #000;
+}
+#nameEntryScreen p {
+    font-size: 3vmin;
+    margin-bottom: 5vmin;
+}
+#userNameInput {
+    padding: 2vmin 3vmin;
+    font-size: 3vmin;
+    font-family: 'Press Start 2P', cursive;
+    background-color: #FFF;
+    border: 3px solid #666;
+    border-radius: 8px;
+    text-align: center;
+    color: #333;
+    margin-bottom: 4vmin;
+    max-width: 80%;
+    box-sizing: border-box;
+}
+#userNameInput::placeholder {
+    color: #AAA;
+}
+
 
 #splashScreen {
     background: linear-gradient(to bottom, #4f65c5, #0e178f);
@@ -59,7 +92,7 @@ body {
     background: linear-gradient(to bottom, #1E90FF, #4682B4);
     display: none;
     z-index: 2;
-    padding: 20px; /* Le padding sera géré par .game-screen padding */
+    /* Le padding sera géré par .game-screen padding */
 }
 #levelSelectScreen h2 {
     font-size: 5vmin; /* Taille de police responsive */
@@ -97,13 +130,18 @@ body {
 
 #gameScreen {
     z-index: 1;
+    /* Sur mobile, gameScreen sera un conteneur flex-column */
+    flex-direction: column;
+    justify-content: flex-start; /* Aligne les éléments en haut */
+    padding: 0; /* Réinitialise le padding, le contenu sera décalé par les contrôles */
 }
 
 #canvas {
     background: transparent;
     display: block; /* S'assure qu'il n'y a pas de marges indésirables */
     width: 100%; /* Le canvas prendra toute la largeur disponible de gameWrapper */
-    height: 100%; /* Le canvas prendra toute la hauteur disponible de gameWrapper */
+    height: 100%; /* La hauteur sera définie par JS pour s'adapter à l'espace restant */
+    /* Pas de positionnement absolu ici, il sera géré par flexbox dans gameScreen */
 }
 
 .button-style {
@@ -131,7 +169,7 @@ body {
     transform: translateY(5px);
 }
 
-/* Style pour le bouton retour en jeu */
+/* Style pour le bouton retour en jeu (desktop only) */
 #returnToLevelSelectButton {
     position: absolute;
     top: 2vmin; /* Utilisez vmin pour une position responsive */
@@ -147,7 +185,7 @@ body {
     box-shadow: 0 3px 0 #005F7B;
     transition: all 0.1s ease;
     z-index: 5;
-    display: none;
+    display: none; /* Caché par défaut, sera affiché par JS si nécessaire sur desktop */
 }
 
 #returnToLevelSelectButton:hover {
@@ -160,49 +198,7 @@ body {
     transform: translateY(3px);
 }
 
-/* Media Queries pour les petits écrans (smartphones en mode portrait) */
-@media (max-width: 600px) {
-    #gameWrapper {
-        width: 98vw; /* Prend plus de largeur sur les petits écrans */
-        height: calc(98vw * (850 / 700));
-        max-height: 95vh; /* Limite la hauteur pour ne pas dépasser l'écran */
-    }
-
-    .game-screen h1 {
-        font-size: 6vmin;
-    }
-
-    .game-screen p {
-        font-size: 2.5vmin;
-    }
-
-    #levelSelectScreen h2 {
-        font-size: 4vmin;
-    }
-
-    .level-buttons {
-        grid-template-columns: repeat(2, 1fr); /* 2 colonnes sur mobile */
-        max-width: 90%;
-    }
-
-    .level-button {
-        font-size: 2.5vmin;
-        padding: 2vmin 1vmin;
-    }
-
-    .button-style {
-        padding: 2vmin 3vmin;
-        font-size: 2.5vmin;
-        margin-top: 4vmin;
-    }
-
-    #returnToLevelSelectButton {
-        font-size: 1.8vmin;
-        padding: 1vmin 2vmin;
-    }
-}
-
-/* Ajout d'un style pour les contrôles tactiles qui seront générés par JS */
+/* Ajout d'un style pour les contrôles tactiles de la raquette */
 .touch-controls {
     position: absolute;
     bottom: 0;
@@ -236,3 +232,274 @@ body {
 .touch-area.right::before {
     content: "▶";
 }
+
+/* -------------------------------------------------------------------------- */
+/* Media Queries pour les petits écrans (smartphones en mode portrait) */
+/* -------------------------------------------------------------------------- */
+@media (max-width: 600px) {
+    body {
+        min-height: 100vh;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #gameWrapper {
+        /* Fait en sorte que gameWrapper remplisse plus l'écran tout en maintenant le ratio d'aspect */
+        width: min(98vw, calc(98vh * 700 / 850)); /* Échelle en fonction de la dimension la plus petite */
+        height: min(98vh, calc(98vw * 850 / 700)); /* Échelle en fonction de la dimension la plus petite */
+        max-width: 98vw; /* S'assure de ne pas dépasser la largeur du viewport */
+        max-height: 98vh; /* S'assure de ne pas dépasser la hauteur du viewport */
+        margin: auto; /* Centre le wrapper s'il ne remplit pas entièrement */
+    }
+
+    /* Ajuste les éléments existants pour mobile */
+    .game-screen h1 {
+        font-size: 6vmin;
+    }
+
+    .game-screen p {
+        font-size: 2.5vmin;
+    }
+
+    #levelSelectScreen h2 {
+        font-size: 4vmin;
+    }
+
+    .level-buttons {
+        grid-template-columns: repeat(2, 1fr); /* 2 colonnes sur mobile */
+        max-width: 90%;
+    }
+
+    .level-button {
+        font-size: 2.5vmin;
+        padding: 2vmin 1vmin;
+    }
+
+    .button-style {
+        padding: 2vmin 3vmin;
+        font-size: 2.5vmin;
+        margin-top: 4vmin;
+    }
+
+    /* Cache le bouton de retour desktop sur mobile */
+    #returnToLevelSelectButton {
+        display: none !important;
+    }
+
+    /* Nouveaux styles pour les contrôles de jeu mobiles */
+    .mobile-controls-container {
+        position: relative; /* Maintenant relatif pour s'adapter au flux flex de gameScreen */
+        width: 100%;
+        height: auto; /* La hauteur s'adapte au contenu */
+        display: flex; /* Utilise flexbox pour la disposition des boutons */
+        justify-content: space-between; /* Espace les boutons */
+        align-items: center;
+        padding: 1.5vmin 2vmin; /* Padding pour les boutons et l'espacement */
+        background-color: rgba(0, 0, 0, 0.6); /* Fond semi-transparent */
+        z-index: 10; /* S'assure qu'il est au-dessus du canvas */
+        box-sizing: border-box; /* Inclut le padding dans la largeur/hauteur */
+        flex-shrink: 0; /* Empêche ce conteneur de rétrécir */
+    }
+
+    #canvas {
+        /* Le canvas prendra l'espace restant après les contrôles mobiles */
+        position: relative; /* Maintenant relatif pour s'adapter au flux flex de gameScreen */
+        flex-grow: 1; /* Permet au canvas de prendre tout l'espace vertical restant */
+        /* La hauteur sera calculée par JS pour être précise */
+    }
+
+    .mobile-control-button {
+        padding: 1.5vmin 2.5vmin;
+        font-size: 2vmin;
+        font-family: 'Press Start 2P', cursive;
+        color: white;
+        border: 2px solid;
+        border-radius: 6px;
+        cursor: pointer;
+        box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+        transition: all 0.1s ease;
+        flex-shrink: 0; /* Empêche les boutons de rétrécir */
+    }
+
+    .mobile-control-button.pause-play {
+        background-color: #4CAF50; /* Vert pour pause/lecture */
+        border-color: #2E8B57;
+    }
+    .mobile-control-button.pause-play:hover {
+        background-color: #66BB6A;
+        box-shadow: 0 1px 0 #2E8B57;
+        transform: translateY(1px);
+    }
+    .mobile-control-button.pause-play:active {
+        box-shadow: 0 0 0 #2E8B57;
+        transform: translateY(2px);
+    }
+
+    .mobile-control-button.return-button {
+        background-color: #008CBA; /* Bleu pour le retour */
+        border-color: #005F7B;
+    }
+    .mobile-control-button.return-button:hover {
+        background-color: #00A2D2;
+        box-shadow: 0 1px 0 #005F7B;
+        transform: translateY(1px);
+    }
+    .mobile-control-button.return-button:active {
+        box-shadow: 0 0 0 #005F7B;
+        transform: translateY(2px);
+    }
+
+    /* Styles pour tous les pop-ups de jeu */
+    .game-popup {
+        /* Pas de display: none ici, géré par JS */
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7); /* Fond semi-transparent */
+        z-index: 100; /* Au-dessus de tout */
+        display: flex; /* Toujours flex pour le centrage */
+        justify-content: center;
+        align-items: center;
+    }
+
+    .popup-content {
+        background-color: #222;
+        border: 3px solid #FFF;
+        border-radius: 15px;
+        padding: 5vmin;
+        text-align: center;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.8);
+        max-width: 80%; /* Pour les petits écrans */
+        display: flex; /* Utilise flexbox pour centrer le contenu */
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .popup-content h2 {
+        font-size: 5vmin;
+        color: #FF4500; /* Rouge pour Game Over */
+        margin-bottom: 4vmin;
+    }
+
+    .popup-content p {
+        font-size: 3vmin;
+        margin-bottom: 3vmin;
+        color: #EEE;
+    }
+
+    .popup-buttons {
+        display: flex;
+        flex-direction: column; /* Boutons empilés sur mobile */
+        gap: 2.5vmin; /* Espacement entre les boutons */
+        margin-top: 3vmin;
+    }
+
+    .popup-button {
+        padding: 2.5vmin 4vmin;
+        font-size: 3vmin;
+        font-family: 'Press Start 2P', cursive;
+        color: white;
+        border: 3px solid;
+        border-radius: 10px;
+        cursor: pointer;
+        box-shadow: 0 5px 0 rgba(0, 0, 0, 0.4);
+        transition: all 0.1s ease;
+    }
+
+    .popup-button.green-button {
+        background-color: #4CAF50;
+        border-color: #2E8B57;
+    }
+    .popup-button.green-button:hover {
+        background-color: #66BB6A;
+        box-shadow: 0 3px 0 #2E8B57;
+        transform: translateY(2px);
+    }
+    .popup-button.green-button:active {
+        box-shadow: 0 0 0 #2E8B57;
+        transform: translateY(5px);
+    }
+
+    .popup-button.red-button {
+        background-color: #FF4500;
+        border-color: #8B0000;
+    }
+    .popup-button.red-button:hover {
+        background-color: #FF6347;
+        box-shadow: 0 3px 0 #8B0000;
+        transform: translateY(2px);
+    }
+    .popup-button.red-button:active {
+        box-shadow: 0 0 0 #8B0000;
+        transform: translateY(5px);
+    }
+
+    /* Styles spécifiques pour le pop-up de Fin de Niveau (Badge) */
+    .level-complete-content {
+        background: linear-gradient(to top left, #333, #000); /* Fond sombre et moderne */
+        border-color: #FFD700; /* Bordure dorée */
+    }
+    .level-complete-content h2 {
+        color: #FFD700; /* Texte doré */
+        font-size: 6vmin;
+        text-shadow: 3px 3px 5px rgba(0,0,0,0.5);
+    }
+    .level-complete-content p {
+        font-size: 3.5vmin;
+        color: #EEE;
+        margin-top: 1vmin;
+        margin-bottom: 4vmin;
+    }
+    .badge-star {
+        font-size: 15vmin; /* Très grande étoile */
+        color: #FFD700; /* Couleur dorée */
+        text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700, 0 0 30px #FFD700; /* Effet de lueur dorée */
+        margin-bottom: 3vmin;
+        line-height: 1; /* Supprime l'espace supplémentaire */
+    }
+
+    /* Styles spécifiques pour le pop-up de Fin de Jeu */
+    .game-complete-content {
+        background: linear-gradient(to bottom right, #1a2a4e, #0a0e1a); /* Fond encore plus sombre et profond */
+        border-color: #6A5ACD; /* Bordure violette/bleue */
+    }
+    .game-complete-content h2 {
+        color: #9370DB; /* Violet clair */
+        font-size: 5.5vmin;
+        text-shadow: 3px 3px 5px rgba(0,0,0,0.5);
+    }
+    .game-complete-content p {
+        font-size: 3vmin;
+        color: #CCC;
+        margin-top: 1vmin;
+        margin-bottom: 4vmin;
+    }
+    .final-stars-container {
+        display: flex;
+        justify-content: center;
+        gap: 1.5vmin; /* Espacement entre les étoiles */
+        margin-bottom: 4vmin;
+        flex-wrap: wrap; /* Permet aux étoiles de passer à la ligne sur petits écrans */
+    }
+    .final-star {
+        font-size: 8vmin; /* Taille des étoiles finales */
+        color: #FFD700; /* Couleur dorée */
+        text-shadow: 0 0 8px #FFD700, 0 0 15px #FFD700; /* Effet de lueur dorée */
+        line-height: 1;
+    }
+}
+
+/* Styles par défaut pour les contrôles mobiles (cachés sur desktop) */
+.mobile-controls-container {
+    display: none; /* Caché par défaut */
+}
+
+/* Suppression de display: none; pour .game-popup ici */
+/* Le pop-up sera toujours display: flex; et sa visibilité sera gérée par JS */
+/* #game-popup { display: none; } */ 

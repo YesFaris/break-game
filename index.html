@@ -9,6 +9,13 @@
 </head>
 <body>
     <div id="gameWrapper">
+        <div id="nameEntryScreen" class="game-screen">
+            <h1>BIENVENUE</h1>
+            <p>Entre ton nom pour commencer</p>
+            <input type="text" id="userNameInput" placeholder="Ton nom" maxlength="15">
+            <button id="continueButton" class="button-style">CONTINUER</button>
+        </div>
+
         <div id="splashScreen" class="game-screen">
             <h1>BREAKOUT</h1>
             <p>Le Jeu</p>
@@ -19,14 +26,50 @@
         <div id="levelSelectScreen" class="game-screen">
             <h2>CHOISIS UN NIVEAU</h2>
             <div class="level-buttons" id="levelButtonsContainer">
-                </div>
-             <button id="backToSplashButton" class="button-style">RETOUR</button>
+            </div>
+            <button id="backToSplashButton" class="button-style">RETOUR</button>
         </div>
 
         <div id="gameScreen" class="game-screen">
+            <div class="mobile-controls-container">
+                <button id="pausePlayButton" class="mobile-control-button pause-play">PAUSE</button>
+                <button id="mobileReturnButton" class="mobile-control-button return-button">RETOUR</button>
+            </div>
             <canvas id="canvas"></canvas> 
-            <button id="returnToLevelSelectButton">RETOUR NIVEAUX</button>
+            <button id="returnToLevelSelectButton">RETOUR</button>
+
+            <div id="gameOverPopup" class="game-popup">
+                <div class="popup-content">
+                    <h2>GAME OVER</h2>
+                    <div class="popup-buttons">
+                        <button id="replayButton" class="popup-button green-button">REJOUER</button>
+                        <button id="quitButton" class="popup-button red-button">QUITTER</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="levelCompletePopup" class="game-popup">
+                <div class="popup-content level-complete-content">
+                    <div class="badge-star">&#9733;</div> <h2 id="levelCompleteMessage">NIVEAU TERMINÉ !</h2>
+                    <p>Félicitations !</p>
+                    <button id="nextLevelButton" class="popup-button green-button">NIVEAU SUIVANT</button>
+                </div>
+            </div>
+
+            <div id="gameCompletePopup" class="game-popup">
+                <div class="popup-content game-complete-content">
+                    <h2 id="finalMessage">BRAVO, [NOM] !</h2>
+                    <p>Vous avez obtenu toutes les étoiles du jeu !</p>
+                    <div id="finalStarsContainer" class="final-stars-container">
+                        </div>
+                    <div class="popup-buttons">
+                        <button id="finalReplayButton" class="popup-button green-button">REJOUER</button>
+                        <button id="finalQuitButton" class="popup-button red-button">QUITTER</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <script src="main.js"></script> </body>
+    <script src="main.js"></script> 
+</body>
 </html>

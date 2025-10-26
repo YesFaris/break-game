@@ -10,15 +10,15 @@ body {
 }
 
 #gameWrapper {
-    position: relative;
+    /* position: relative; */
     /* Dimensions flexibles pour le responsive */
     width: 90vw; /* 90% de la largeur du viewport sur desktop */
     max-width: 700px; /* Mais pas plus que la taille originale max */
     height: calc(90vw * (850 / 700)); /* Garde le ratio 850:700 sur desktop */
     max-height: 850px; /* Pas plus que la taille originale max */
-    border: 5px solid #000;
+    /* border: 5px solid #000; */
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
-    background-color: #222;
+    background-color: #222222;
     overflow: hidden;
     /* Ajustement pour les écrans très larges pour éviter un étirement excessif */
     aspect-ratio: 700 / 850; /* Maintient le ratio width/height */
